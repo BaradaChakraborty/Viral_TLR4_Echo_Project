@@ -24,3 +24,25 @@ dir.create("E:/Viral_TLR4_Echo_Project/results/tables", recursive = TRUE, showWa
 write.csv(cluster_18_stats, "E:/Viral_TLR4_Echo_Project/results/tables/Cluster_18_vs_Rest_TF_Stats.csv")
 
 message("Statistical analysis complete! CSV table saved.")
+###
+# 1. Load the corrupted stats table
+stats_df <- read.csv("E:/Viral_TLR4_Echo_Project/results/tables/Cluster_18_vs_Rest_TF_Stats.csv", row.names = 1)
+
+# 2. Extract the raw numerical activity matrix
+DefaultAssay(microglia_obj) <- "tf_ulm"
+tf_matrix <- as.matrix(GetAssayData(microglia_obj, assay = "tf_ulm"))
+
+# 3. Calculate the true mathematical means for both groups
+mean_18 <- rowMeans(tf_matrix[, Idents(microglia_obj) == 18])
+mean_rest <- rowMeans(tf_matrix[, Idents(microglia_obj) != 18])
+
+# 4. Calculate the raw Mean Difference and match it to the stats table
+mean_diff_all <- mean_18 - mean_rest
+stats_df$True_Mean_Diff <- mean_diff_all[rownames(stats_df)]
+
+# 5. Clean up the columns and replace the corrupted Log2FC
+stats_df <- stats_df[, c("True_Mean_Diff", "p_val", "p_val_adj", "pct.1", "pct.2")]
+
+# 6. Save the publication-ready table
+write.csv(stats_df, "E:/Viral_TLR4_Echo_Project/results/tables/Final_Corrected_TF_Stats.csv")
+message("Corrected Statistical Table saved successfully!")
